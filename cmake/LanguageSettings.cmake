@@ -47,8 +47,25 @@ if(CCACHE_FOUND)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif()
 
+#
+# Sanitizers settings
+#
+# Currently enabled: AddressSanitizer, UndefinedBehaviorSanitizer, MemorySanitizer
+
 option(${PROJECT_NAME}_ENABLE_ASAN "Enable Address Sanitize to detect memory error." OFF)
 if(${PROJECT_NAME}_ENABLE_ASAN)
     add_compile_options(-fsanitize=address)
     add_link_options(-fsanitize=address)
+endif()
+
+option(${PROJECT_NAME}_ENABLE_UBSAN "Enable Undefined Behavior Sanitizer to detect undefined behavior." OFF)
+if(${PROJECT_NAME}_ENABLE_UBSAN)
+    add_compile_options(-fsanitize=undefined)
+    add_link_options(-fsanitize=undefined)
+endif()
+
+option(${PROJECT_NAME}_ENABLE_MSAN "Enable MemorySanitizer to detect uninitialized reads." OFF)
+if(${PROJECT_NAME}_ENABLE_MSAN)
+    add_compile_options(-fsanitize=memory)
+    add_link_options(-fsanitize=memory)
 endif()

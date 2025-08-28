@@ -25,7 +25,7 @@ A custom CMake target is available to format all source files. After configuring
 cmake --build build-clang --target clang_format -j 1
 ```
 
-By default, CMake will try to find `clang-format` in your `PATH`.  
+By default, CMake will try to find `clang-format` in your `PATH`.
 If you have `clang-format` installed at a custom location, specify it when configuring:
 
 ```console
@@ -48,7 +48,19 @@ CXX=clang++ CC=clang-20 cmake -G Ninja -S . -B build-tidy  -D{PROJECT_NAME}_ENAB
 cmake --build build-tidy -j4
 ```
 
-# Testing 
+# Compiling with sanitizers
+
+To create a build with sanitizers enabled:
+
+```console
+CXX=clang++ CC=clang-20 cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja -S . -B build-clang-debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -D{PROJECT_NAME}_ENABLE_ASAN=ON -D{PROJECT_NAME}_ENABLE_UBSAN=ON -D{PROJECT_NAME}_ENABLE_MSAN=ON
+```
+
+```console
+cmake --build build-clang-debug -j4
+```
+
+# Testing
 
 Unit Tests are compiled when building the project. You can run the unit tests by running:
 
