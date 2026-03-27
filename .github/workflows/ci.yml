@@ -46,7 +46,13 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        submodules: recursive
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+
+    - name: Install Conan
+      run: python -m pip install "conan>=2,<3"
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -55,14 +61,32 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
+    - name: Detect Conan profile
+      env:
+        CC: ${{ matrix.os == 'ubuntu-latest' && matrix.c_compiler || '' }}
+        CXX: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp_compiler || '' }}
+      run: conan profile detect --force
+
+    - name: Install Conan dependencies
+      env:
+        CC: ${{ matrix.os == 'ubuntu-latest' && matrix.c_compiler || '' }}
+        CXX: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp_compiler || '' }}
+      run: >
+        conan install ${{ github.workspace }}
+        --output-folder ${{ steps.strings.outputs.build-output-dir }}
+        --build=missing
+        -s build_type=${{ matrix.build_type }}
+
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      env:
+        CC: ${{ matrix.os == 'ubuntu-latest' && matrix.c_compiler || '' }}
+        CXX: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp_compiler || '' }}
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DCMAKE_TOOLCHAIN_FILE=${{ steps.strings.outputs.build-output-dir }}/conan_toolchain.cmake
         -S ${{ github.workspace }}
 
     - name: Build

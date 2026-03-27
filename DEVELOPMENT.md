@@ -1,10 +1,17 @@
 # Building the project
-This c++ template relies on [CMake](https://cmake.org/) to handle builds.
+This C++ template relies on [Conan 2](https://conan.io/) to manage dependencies and [CMake](https://cmake.org/) to handle builds.
 
-To compile the project, first setup a build directory (e.g. a build directory for Clang):
+To compile the project, first install the dependencies into a build directory (for example, a Clang build directory):
 
 ```console
-CXX=clang++ CC=clang-20 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja -S . -B build-clang -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+conan profile detect --force
+CC=clang-20 CXX=clang++ conan install . --output-folder=build-clang --build=missing -s build_type=RelWithDebInfo
+```
+
+Then configure CMake using the Conan-generated toolchain:
+
+```console
+CC=clang-20 CXX=clang++ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja -S . -B build-clang -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE=build-clang/conan_toolchain.cmake
 ```
 
 This initialises CMake to use clang. `clang-20` is used to support features from `c++23`.
@@ -41,7 +48,11 @@ This will ensure the correct `clang-format` binary is used for formatting.
 Linting can be done with clang-tidy:
 
 ```console
-CXX=clang++ CC=clang-20 cmake -G Ninja -S . -B build-tidy  -D{PROJECT_NAME}_ENABLE_CLANG_TIDY
+CC=clang-20 CXX=clang++ conan install . --output-folder=build-tidy --build=missing -s build_type=Debug
+```
+
+```console
+CC=clang-20 CXX=clang++ cmake -G Ninja -S . -B build-tidy -D{PROJECT_NAME}_ENABLE_CLANG_TIDY -DCMAKE_TOOLCHAIN_FILE=build-tidy/conan_toolchain.cmake
 ```
 
 ```console
@@ -53,7 +64,11 @@ cmake --build build-tidy -j4
 To create a build with sanitizers enabled:
 
 ```console
-CXX=clang++ CC=clang-20 cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja -S . -B build-clang-debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -D{PROJECT_NAME}_ENABLE_ASAN=ON -D{PROJECT_NAME}_ENABLE_UBSAN=ON -D{PROJECT_NAME}_ENABLE_MSAN=ON
+CC=clang-20 CXX=clang++ conan install . --output-folder=build-clang-debug --build=missing -s build_type=Debug
+```
+
+```console
+CC=clang-20 CXX=clang++ cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja -S . -B build-clang-debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -D{PROJECT_NAME}_ENABLE_ASAN=ON -D{PROJECT_NAME}_ENABLE_UBSAN=ON -D{PROJECT_NAME}_ENABLE_MSAN=ON -DCMAKE_TOOLCHAIN_FILE=build-clang-debug/conan_toolchain.cmake
 ```
 
 ```console
@@ -73,16 +88,22 @@ You can specifically target the unit test target with:
 ```
 cmake --build build-clang --target ${PROJECT_NAME}_unit_test
 ```
+
 # Adding dependencies
 
-Dependencies are added as a submodule. Make sure to select a specific version of the Dependency. E.g. for GoogleTest:
+Dependencies are added in `conanfile.py` and then consumed from CMake with `find_package(...)` and imported targets.
 
-```console
-git submodule add -b v1.17.x https://github.com/google/googletest.git extern/googletest
+For example, GoogleTest is declared as:
+
+```python
+requires = "gtest/1.17.0"
 ```
 
-To initialise and update the submodules:
+After editing `conanfile.py`, rerun `conan install` for the build directory you want to use so CMake can resolve the generated package configuration files.
+
+In CMake, dependencies should be linked via their package targets. For GoogleTest:
 
 ```console
-git submodule update --init --recursive
+find_package(GTest REQUIRED CONFIG)
+target_link_libraries(your_target PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
 ```

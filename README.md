@@ -2,3 +2,4 @@
 
 A personal template for C++ projects. Inspired by https://github.com/filipdutescu/modern-cpp-template & , but adapted for personal preferences.
 
+Dependencies are managed with Conan 2 and consumed from CMake through imported targets.
