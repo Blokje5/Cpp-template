@@ -35,11 +35,9 @@ class ProjectConan(ConanFile):
     def requirements(self):
         for requirement in self.project_requirements:
             self.requires(requirement)
-
-    def test_requirements(self):
         if self.options.with_unit_tests:
             for requirement in self.project_test_requirements:
-                self.test_requires(requirement)
+                self.requires(requirement)
 
     def generate(self):
         deps = CMakeDeps(self)
