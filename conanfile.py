@@ -44,10 +44,10 @@ class ProjectConan(ConanFile):
         deps.generate()
 
         tc = CMakeToolchain(self)
-        tc.cache_variables["PROJECT_ENABLE_UNIT_TESTING"] = self.options.with_unit_tests
-        tc.cache_variables["PROJECT_USE_GTEST"] = self.options.with_unit_tests
-        tc.cache_variables["PROJECT_ENABLE_CLANG_TIDY"] = self.options.with_clang_tidy
-        tc.cache_variables["PROJECT_ENABLE_ASAN"] = self.options.with_asan
-        tc.cache_variables["PROJECT_ENABLE_UBSAN"] = self.options.with_ubsan
-        tc.cache_variables["PROJECT_ENABLE_MSAN"] = self.options.with_msan
+        tc.cache_variables["Project_ENABLE_UNIT_TESTING"] = self.options.with_unit_tests
+        tc.cache_variables["Project_USE_GTEST"] = self.options.with_unit_tests
+        tc.cache_variables["Project_ENABLE_CLANG_TIDY"] = self.options.with_clang_tidy
+        tc.cache_variables["Project_ENABLE_ASAN"] = self.options.with_asan
+        tc.cache_variables["Project_ENABLE_UBSAN"] = self.options.with_ubsan
+        tc.cache_variables["Project_ENABLE_MSAN"] = self.options.with_msan
         tc.generate()

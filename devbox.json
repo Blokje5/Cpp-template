@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.17.1/.schema/devbox.schema.json",
+  "packages": [
+    "cmake@latest",
+    "ccache@latest",
+    "ninja@latest",
+    "conan@latest",
+    "clang-tools@latest",
+    "git@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "conan profile detect --force 2>/dev/null"
+    ],
+    "scripts": {
+      "setup": [
+        "conan install . --output-folder=build/default --build=missing -s build_type=RelWithDebInfo",
+        "cmake --preset conan-relwithdebinfo"
+      ],
+      "build": [
+        "cmake --build --preset conan-relwithdebinfo"
+      ],
+      "test": [
+        "ctest --preset conan-relwithdebinfo"
+      ],
+      "format": [
+        "cmake --build build/default --target clang_format"
+      ],
+      "lint": [
+        "conan install . --output-folder=build/tidy --build=missing -s build_type=Debug -o '&:with_clang_tidy=True'",
+        "cmake --preset conan-debug",
+        "cmake --build --preset conan-debug -j4"
+      ],
+      "sanitize": [
+        "conan install . --output-folder=build/asan --build=missing -s build_type=Debug -o '&:with_asan=True' -o '&:with_ubsan=True'",
+        "cmake --preset conan-debug",
+        "cmake --build --preset conan-debug -j4"
+      ]
+    }
+  }
+}
